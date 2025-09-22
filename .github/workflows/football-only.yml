@@ -1,0 +1,37 @@
+name: Football Test - Manual Run
+
+on:
+  workflow_dispatch:
+
+jobs:
+  football:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+      - name: Install deps
+        run: npm ci || npm install
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: Run Football Test (trace on)
+        run: npx playwright test tests/specs/planetsports/PSG.Football.Animations.spec.ts --project=chromium --trace on
+        env:
+          CI: true
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: football-html-report
+          path: test-results-html/
+      - name: Upload traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: football-traces
+          path: playwright-report/**/trace.zip
+          if-no-files-found: ignore
